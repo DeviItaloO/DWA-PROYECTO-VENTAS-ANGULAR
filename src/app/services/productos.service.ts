@@ -14,7 +14,7 @@ export class ProductosService {
 
   private getAutenticacion(): HttpHeaders {
     const username = 'user';
-    const password = 'fca86b43-f07b-4d0b-8ec3-e4b4f16ba6eb';
+    const password = 'b70ba5cc-69c0-471d-9c7c-a41034b93872';
     const basica = 'Basic ' + btoa(`${username}:${password}`);
     return new HttpHeaders({ Authorization: basica });
   }

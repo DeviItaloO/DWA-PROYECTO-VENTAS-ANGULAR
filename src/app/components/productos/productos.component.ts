@@ -68,8 +68,8 @@ export class ProductosComponent implements OnInit {
 
   getProductos(): void {
     this.productosService.getProductos().subscribe(
-      (data) => {
-        this.productos = data;
+      (response) => {
+        this.productos = response;
         //console.log("Productos: ", this.productos);
         this.totalProductos = this.productos.length;
         this.productosPaginados();
