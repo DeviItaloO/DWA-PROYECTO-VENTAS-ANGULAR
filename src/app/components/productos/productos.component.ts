@@ -178,7 +178,7 @@ export class ProductosComponent implements OnInit {
 
   editarProducto(producto: Producto){
     this.producto = producto;
-    console.log(this.producto);
+    //console.log(this.producto);
     
     this.productoForm.patchValue({
       idProducto: producto.idProducto,
