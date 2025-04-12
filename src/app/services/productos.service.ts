@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
-import { HttpClient, HttpHeaders } from '@angular/common/http';
-import { environment } from '../../environments/environment';
+import { HttpClient } from '@angular/common/http';
 import { Observable } from 'rxjs';
+import { environment } from '../../environments/environment';
 import { Producto } from '../interfaces/producto';
 
 @Injectable({
@@ -12,26 +12,19 @@ export class ProductosService {
 
   constructor(private http: HttpClient) {}
 
-  private getAutenticacion(): HttpHeaders {
-    const username = 'user';
-    const password = '18b01821-f32a-484f-9457-1cb8f7505505';
-    const basica = 'Basic ' + btoa(`${username}:${password}`);
-    return new HttpHeaders({ Authorization: basica });
-  }
-
   getProductos(): Observable<Producto[]>{
-    return this.http.get<Producto[]>(`${this.apiUrl}/list`, { headers: this.getAutenticacion() });
+    return this.http.get<Producto[]>(`${this.apiUrl}/list`);
   }
 
   crearProducto(producto: Producto): Observable<any> {
-    return this.http.post<any>(`${this.apiUrl}/create`, producto, { headers: this.getAutenticacion() });
+    return this.http.post<any>(`${this.apiUrl}/create`, producto);
   }
 
   actualizarProducto(id: number, producto: Producto): Observable<any> {
-    return this.http.put<any>(`${this.apiUrl}/update/${id}`, producto, { headers: this.getAutenticacion() });
+    return this.http.put<any>(`${this.apiUrl}/update/${id}`, producto);
   }
 
   eliminarProducto(id: number): Observable<any> {
-    return this.http.delete<any>(`${this.apiUrl}/delete/${id}`, { headers: this.getAutenticacion() });
+    return this.http.delete<any>(`${this.apiUrl}/delete/${id}`);
   }
 }
