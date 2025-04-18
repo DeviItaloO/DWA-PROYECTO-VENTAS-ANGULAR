@@ -1,4 +1,4 @@
-import { Component, OnInit, ViewChild, TemplateRef  } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef  } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductosService } from '../../services/productos.service';
 import { Producto } from '../../interfaces/producto';
@@ -6,7 +6,7 @@ import { Router } from '@angular/router';
 import { FormBuilder, FormGroup, Validators, ReactiveFormsModule  } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginator } from '@angular/material/paginator';
@@ -32,17 +32,17 @@ import { MatInputModule } from '@angular/material/input';
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.scss'
 })
-export class ProductosComponent implements OnInit {
+export class ProductosComponent implements OnInit, AfterViewInit {
   productos: Producto[] = [];
   displayedColumns: string[] = ['id', 'nombre', 'descripcion', 'precio', 'stock', 'acciones'];
   paginacion: Producto[] = [];
   numeroPagina = 5;
   numeroActual = 0;
-  totalProductos = 0;
   productoForm: FormGroup;
   isDialogVisible: boolean = false;
   producto?: Producto;
   titulo?: string;
+  dataSource = new MatTableDataSource<any>([])
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild('dialogTemplate') dialogTemplate!: TemplateRef<any>;
@@ -66,20 +66,18 @@ export class ProductosComponent implements OnInit {
     this.getProductos();
   }
 
+
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+  }
+
   getProductos(): void {
-    this.productosService.getProductos().subscribe(
-      (response) => {
+    this.productosService.getProductos().subscribe({
+      next: (response) => {
         this.productos = response;
-        //console.log("Productos: ", this.productos);
-        this.totalProductos = this.productos.length;
-        this.productosPaginados();
-        //this.paginator.firstPage();
-        //this.dataSource.data = data;//this.productos;
+        this.dataSource.data = response;
       },
-      (error) => {
-        //console.error("Error al cargar productos: ", error);
-        //alert("error al cargar productos: "+ error);
-        //const mensaje = error.error.message
+      error: (error) => {
           Swal.fire({
             allowOutsideClick: true,
             title: 'Failed',
@@ -88,14 +86,7 @@ export class ProductosComponent implements OnInit {
             confirmButtonText: 'Aceptar'
         })
       }
-    );
-  }
-
-  productosPaginados(): void {
-    const inicio = this.numeroActual * this.numeroPagina;
-    const final = inicio + this.numeroPagina;
-    this.paginacion = this.productos.slice(inicio, final);
-    
+    });
   }
 
   openDialog() {
@@ -247,11 +238,4 @@ export class ProductosComponent implements OnInit {
     //this.isDialogVisible = false;
     this.dialog.closeAll();
   }
-
-  onPage(event: any): void{
-    this.numeroActual = event.pageIndex;
-    this.numeroPagina = event.pageSize;
-    this.productosPaginados();
-  }
-
 }

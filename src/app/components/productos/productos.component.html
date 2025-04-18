@@ -8,7 +8,7 @@
 
     <h3>Listado de productos</h3>
     <div class="table-wrapper">
-        <table mat-table [dataSource]="paginacion" class="mat-elevation-z8">
+        <table mat-table [dataSource]="dataSource" class="mat-elevation-z8">
             <ng-container matColumnDef="id">
                 <th mat-header-cell *matHeaderCellDef> ID </th>
                 <td mat-cell *matCellDef="let producto"> {{ producto.idProducto }} </td>
@@ -53,14 +53,7 @@
             <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
         </table>
         
-        <mat-paginator 
-            [length]="productos.length"
-            [pageSize]="numeroPagina" 
-            [pageSizeOptions]="[5, 10, 25]"
-            (page) = "onPage($event)"
-            showFirstLastButtons
-            style="display: block; margin-top: 20px; width: 100%;">
-        </mat-paginator>
+        <mat-paginator [pageSize]="numeroPagina"  [pageSizeOptions]="[5, 10, 25]" showFirstLastButtons style="display: block; margin-top: 20px; width: 100%;"></mat-paginator>
     </div>
 
     <div *ngIf="productos.length === 0" style="text-align: center; margin-top: 10px;">
