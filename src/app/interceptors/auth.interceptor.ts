@@ -2,7 +2,7 @@ import { HttpInterceptorFn } from '@angular/common/http';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const username = 'user';
-    const password = 'c1a5f676-7e33-4254-a845-e33fdaba612f';
+    const password = 'b0107a18-0d37-4a8d-8b5f-f10405619207';
     const authHeader = 'Basic ' + btoa(`${username}:${password}`);
   
     const authReq = req.clone({

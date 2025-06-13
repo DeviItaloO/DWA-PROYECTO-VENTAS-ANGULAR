@@ -34,9 +34,9 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class ProductosComponent implements OnInit, AfterViewInit {
   productos: Producto[] = [];
-  displayedColumns: string[] = ['id', 'nombre', 'descripcion', 'precio', 'stock', 'acciones'];
+  displayedColumns: string[] = ['id', 'nombre', 'descripcion', 'precio', 'stock', 'categoria', 'acciones'];
   paginacion: Producto[] = [];
-  numeroPagina = 5;
+  numeroPagina = 10;
   numeroActual = 0;
   productoForm: FormGroup;
   isDialogVisible: boolean = false;
