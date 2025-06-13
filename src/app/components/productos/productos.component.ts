@@ -1,9 +1,9 @@
-import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef  } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductosService } from '../../services/productos.service';
 import { Producto } from '../../interfaces/producto';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule  } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -21,8 +21,8 @@ import { MatInputModule } from '@angular/material/input';
   imports: [
     CommonModule,
     MatTableModule,
-    MatPaginator, 
-    MatButtonModule, 
+    MatPaginator,
+    MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
@@ -78,12 +78,12 @@ export class ProductosComponent implements OnInit, AfterViewInit {
         this.dataSource.data = response;
       },
       error: (error) => {
-          Swal.fire({
-            allowOutsideClick: true,
-            title: 'Failed',
-            text: 'Error en el servidor',
-            icon: 'warning',
-            confirmButtonText: 'Aceptar'
+        Swal.fire({
+          allowOutsideClick: true,
+          title: 'Failed',
+          text: 'Error en el servidor',
+          icon: 'warning',
+          confirmButtonText: 'Aceptar'
         })
       }
     });
@@ -99,14 +99,14 @@ export class ProductosComponent implements OnInit, AfterViewInit {
   }
 
   saveProducto(): void {
-    if(this.productoForm.valid){
+    if (this.productoForm.valid) {
       const productoData: Producto = this.productoForm.value;
-      productoData.idCategoria = 1; 
-      
+      productoData.idCategoria = 1;
+
       if (!this.producto?.idProducto) {
         //console.log("producto:" + JSON.stringify(productoData));
-        this.productosService.crearProducto(productoData).subscribe(
-          (response) => {
+        this.productosService.crearProducto(productoData).subscribe({
+          next: (response) => {
             const mensaje = response.message
             Swal.fire({
               allowOutsideClick: true,
@@ -115,13 +115,13 @@ export class ProductosComponent implements OnInit, AfterViewInit {
               icon: 'success',
               confirmButtonText: 'regresar'
             }).then((click) => {
-              if(click.isConfirmed){
+              if (click.isConfirmed) {
                 this.getProductos();
                 this.closeDialog();
               }
             });
           },
-          (error) =>{
+          error: (error) => {
             //console.log(error);
             const mensaje = error.error.message
             Swal.fire({
@@ -132,10 +132,10 @@ export class ProductosComponent implements OnInit, AfterViewInit {
               confirmButtonText: 'Aceptar'
             })
           }
-      );
-      }else {
-        this.productosService.actualizarProducto(this.producto.idProducto, productoData).subscribe(
-          (response) => {
+        });
+      } else {
+        this.productosService.actualizarProducto(this.producto.idProducto, productoData).subscribe({
+          next: (response) => {
             const mensaje = response.message;
             Swal.fire({
               allowOutsideClick: true,
@@ -144,13 +144,13 @@ export class ProductosComponent implements OnInit, AfterViewInit {
               icon: 'success',
               confirmButtonText: 'Regresar'
             }).then((click) => {
-              if(click.isConfirmed){
+              if (click.isConfirmed) {
                 this.getProductos();
                 this.closeDialog();
               }
             });
           },
-          (error) => {
+          error: (error) => {
             const mensaje = error.error?.message;
             Swal.fire({
               allowOutsideClick: true,
@@ -160,17 +160,17 @@ export class ProductosComponent implements OnInit, AfterViewInit {
               confirmButtonText: 'Aceptar'
             });
           }
-        )
+        })
       }
-    }else{
+    } else {
 
     }
   }
 
-  editarProducto(producto: Producto){
+  editarProducto(producto: Producto) {
     this.producto = producto;
     //console.log(this.producto);
-    
+
     this.productoForm.patchValue({
       idProducto: producto.idProducto,
       nombre: producto.nombre,
@@ -195,39 +195,38 @@ export class ProductosComponent implements OnInit, AfterViewInit {
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, eliminar'
     }).then((click) => {
-      if(click.isConfirmed){
-        this.productosService.eliminarProducto(id).subscribe(
-          (response) => {
+      if (click.isConfirmed) {
+        this.productosService.eliminarProducto(id).subscribe({
+          next: (response) => {
             const mensaje = response.message;
             Swal.fire({
               title: 'Eliminado',
               text: mensaje,
               icon: 'success',
               confirmButtonText: 'Aceptar'
-          }).then(() => {
+            }).then(() => {
               this.getProductos();
-          });
+            });
           },
-          (error) => {
+          error: (error) => {
             const mensaje = error.error?.message;
             Swal.fire({
-                title: 'Error',
-                text: mensaje,
-                icon: 'error',
-                confirmButtonText: 'Aceptar'
+              title: 'Error',
+              text: mensaje,
+              icon: 'error',
+              confirmButtonText: 'Aceptar'
             });
-        }
-        );
+          }
+        });
       }
-
     });
   }
 
-  abrirCarrito(){
+  abrirCarrito() {
     //alert("");
   }
 
-  logout(){
+  logout() {
     localStorage.removeItem('username');
     localStorage.removeItem('password');
     this.router.navigate(['/login']);
