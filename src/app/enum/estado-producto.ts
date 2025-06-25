@@ -1,0 +1,5 @@
+export enum EstadoProducto {
+  DISPONIBLE = 'DISPONIBLE',
+  AGOTADO = 'AGOTADO',
+  DESCONTINUADO = 'DESCONTINUADO'
+}

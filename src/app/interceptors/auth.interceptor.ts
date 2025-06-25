@@ -1,15 +1,19 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { TokenService } from '../services/token.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-    const username = 'user';
-    const password = 'b0107a18-0d37-4a8d-8b5f-f10405619207';
-    const authHeader = 'Basic ' + btoa(`${username}:${password}`);
-  
+  const tokenService = inject(TokenService);
+  const clientId = tokenService.getActiveClientId();
+  const token = clientId ? tokenService.getToken(clientId) : null;
+  if (token) {
     const authReq = req.clone({
       setHeaders: {
-        Authorization: authHeader
+        Authorization: `Bearer ${token}`
       }
     });
-  
     return next(authReq);
-  };
+  }
+
+  return next(req);
+};

@@ -12,7 +12,8 @@ import { MatIconModule } from '@angular/material/icon';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-
+import { MatSelectModule } from '@angular/material/select';
+import { EstadoProducto } from '../../enum/estado-producto';
 //import { BrowserAnimationsModule  } from '@angular/platform-browser/animations';
 
 @Component({
@@ -27,6 +28,7 @@ import { MatInputModule } from '@angular/material/input';
     MatFormFieldModule,
     MatInputModule,
     ReactiveFormsModule,
+    MatSelectModule,
     //BrowserAnimationsModule 
   ],
   templateUrl: './productos.component.html',
@@ -34,7 +36,7 @@ import { MatInputModule } from '@angular/material/input';
 })
 export class ProductosComponent implements OnInit, AfterViewInit {
   productos: Producto[] = [];
-  displayedColumns: string[] = ['id', 'nombre', 'descripcion', 'precio', 'stock', 'categoria', 'acciones'];
+  displayedColumns: string[] = ['id', 'nombre', 'descripcion', 'precio', 'stock', 'estado', 'categoria', 'acciones'];
   paginacion: Producto[] = [];
   numeroPagina = 10;
   numeroActual = 0;
@@ -42,7 +44,8 @@ export class ProductosComponent implements OnInit, AfterViewInit {
   isDialogVisible: boolean = false;
   producto?: Producto;
   titulo?: string;
-  dataSource = new MatTableDataSource<any>([])
+  dataSource = new MatTableDataSource<any>([]);
+  estados = Object.values(EstadoProducto); 
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild('dialogTemplate') dialogTemplate!: TemplateRef<any>;
@@ -57,8 +60,10 @@ export class ProductosComponent implements OnInit, AfterViewInit {
       idProducto: [null],
       nombre: ['', Validators.required],
       descripcion: ['', Validators.required],
-      precio: ['', Validators.required],
-      stock: ['', Validators.required]
+      precio: [0, [Validators.required, Validators.min(0)]],
+      stock: [0, [Validators.required, Validators.min(0)]],
+      estado: ['', Validators.required],
+      idCategoria: [null, Validators.required] 
     });
   }
 
@@ -85,6 +90,7 @@ export class ProductosComponent implements OnInit, AfterViewInit {
           icon: 'warning',
           confirmButtonText: 'Aceptar'
         })
+        this.router.navigate(['/login']);
       }
     });
   }
@@ -93,6 +99,10 @@ export class ProductosComponent implements OnInit, AfterViewInit {
     //this.isDialogVisible =true;
     this.producto = undefined;
     this.titulo = 'Nuevo Producto';
+    this.productoForm.reset({
+      estado: EstadoProducto.DISPONIBLE,
+      idCategoria: 1
+    });
     this.dialog.open(this.dialogTemplate, {
       width: '400px'
     });
@@ -176,7 +186,9 @@ export class ProductosComponent implements OnInit, AfterViewInit {
       nombre: producto.nombre,
       descripcion: producto.descripcion,
       precio: producto.precio,
-      stock: producto.stock
+      stock: producto.stock,
+      estado: producto.estado,
+      idCategoria: producto.idCategoria
     });
     this.titulo = 'Editar Producto';
     //this.isDialogVisible = true;
@@ -229,6 +241,7 @@ export class ProductosComponent implements OnInit, AfterViewInit {
   logout() {
     localStorage.removeItem('username');
     localStorage.removeItem('password');
+    localStorage.removeItem('access_token_producto-service');
     this.router.navigate(['/login']);
   }
 
