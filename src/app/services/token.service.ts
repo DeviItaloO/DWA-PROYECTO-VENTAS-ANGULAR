@@ -8,36 +8,18 @@ import { Observable, tap } from 'rxjs';
 })
 export class TokenService {
     private apiToken = `${environment.apiGatewayUrl}/token`;
-    private currentClientId: string | null = null;
 
     constructor(private http: HttpClient) { }
 
     obtenerToken(credentials: { clientId: string, clientSecret: string }): Observable<any> {
-        //console.log(credentials);
-        return this.http.post(this.apiToken, credentials).pipe(
-            tap((response: any) => {
-                const key = this.getStorageKey(credentials.clientId);
-                localStorage.setItem(key, response.token);
-                this.currentClientId = credentials.clientId;
-            })
+        return this.http.post<{ token: string }>(this.apiToken, credentials).pipe(
+            tap(resp =>
+                localStorage.setItem(`access_token_${credentials.clientId}`, resp.token)
+            )
         );
     }
 
-    getActiveClientId(): string | null {
-        return this.currentClientId;
-    }
-
     getToken(clientId: string): string | null {
-        const key = this.getStorageKey(clientId);
-        return localStorage.getItem(key);
-    }
-
-    clearToken(clientId: string): void {
-        const key = this.getStorageKey(clientId);
-        localStorage.removeItem(key);
-    }
-
-    private getStorageKey(clientId: string): string {
-        return `access_token_${clientId}`;
+        return localStorage.getItem(`access_token_${clientId}`);
     }
 }

@@ -5,12 +5,14 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
+import { switchMap } from 'rxjs/operators';
+import { forkJoin } from 'rxjs';
 import Swal from 'sweetalert2';
 
 import { Router } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
 import { TokenService } from '../../services/token.service';
-import { MicroservicioConfig, Microservicios } from '../../config/microservices.config';
+import { Microservicios } from '../../config/microservices.config';
 
 @Component({
   standalone: true,
@@ -43,23 +45,16 @@ export class LoginComponent {
 
   onSubmit() {
     if (this.loginForm.valid) {
-      this.authService.login(this.loginForm.value).subscribe({
+      this.authService.login(this.loginForm.value).pipe(
+        switchMap(() =>
+          forkJoin({
+            producto: this.tokenService.obtenerToken(Microservicios['producto-service']),
+            categoria: this.tokenService.obtenerToken(Microservicios['categoria-service'])
+          })
+        )
+      ).subscribe({
         next: () => {
-          const config = Microservicios['producto-service'];
-          this.tokenService.obtenerToken(config).subscribe({
-            next: (tokenResponse) => {
-              //console.log(tokenResponse);
-              this.router.navigate(['/producto']);
-            },
-            error: () => {
-              Swal.fire({
-                icon: 'error',
-                title: 'Token error',
-                text: 'No se pudo obtener el token del microservicio',
-                confirmButtonText: 'Aceptar'
-              });
-            }
-          });
+          this.router.navigate(['/producto']);
         },
         error: (error) => {
           const mensaje = error.error?.message || 'Credenciales incorrectas';

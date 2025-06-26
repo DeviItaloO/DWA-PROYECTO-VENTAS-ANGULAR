@@ -4,16 +4,21 @@ import { TokenService } from '../services/token.service';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const tokenService = inject(TokenService);
-  const clientId = tokenService.getActiveClientId();
+  let clientId: string | null = null;
+
+  if (req.url.includes('/api/productos')) {
+    clientId = 'producto-service';
+  } else if (req.url.includes('/api/categorias')) {
+    clientId = 'categoria-service';
+  }
+
   const token = clientId ? tokenService.getToken(clientId) : null;
   if (token) {
-    const authReq = req.clone({
+    req = req.clone({
       setHeaders: {
         Authorization: `Bearer ${token}`
       }
     });
-    return next(authReq);
   }
-
   return next(req);
 };

@@ -3,7 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ProductosService } from '../../services/productos.service';
 import { Producto } from '../../interfaces/producto';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
 import { MatTableDataSource, MatTableModule } from '@angular/material/table';
@@ -14,7 +14,8 @@ import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
 import { MatSelectModule } from '@angular/material/select';
 import { EstadoProducto } from '../../enum/estado-producto';
-//import { BrowserAnimationsModule  } from '@angular/platform-browser/animations';
+import { CategoriaService } from '../../services/categorias.service';
+import { Categoria } from '../../interfaces/categoria';
 
 @Component({
   standalone: true,
@@ -27,31 +28,31 @@ import { EstadoProducto } from '../../enum/estado-producto';
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
+    FormsModule,
     ReactiveFormsModule,
     MatSelectModule,
-    //BrowserAnimationsModule 
   ],
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.scss'
 })
 export class ProductosComponent implements OnInit, AfterViewInit {
   productos: Producto[] = [];
+  categorias: Categoria[] = [];
   displayedColumns: string[] = ['id', 'nombre', 'descripcion', 'precio', 'stock', 'estado', 'categoria', 'acciones'];
-  paginacion: Producto[] = [];
-  numeroPagina = 10;
-  numeroActual = 0;
+  dataSource = new MatTableDataSource<any>([]);
   productoForm: FormGroup;
   isDialogVisible: boolean = false;
   producto?: Producto;
   titulo?: string;
-  dataSource = new MatTableDataSource<any>([]);
-  estados = Object.values(EstadoProducto); 
+  estados = Object.values(EstadoProducto);
+  filtroCategoria: number | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild('dialogTemplate') dialogTemplate!: TemplateRef<any>;
 
   constructor(
     private productosService: ProductosService,
+    private categoriaService: CategoriaService,
     private router: Router,
     private dialog: MatDialog,
     private fb: FormBuilder
@@ -63,14 +64,14 @@ export class ProductosComponent implements OnInit, AfterViewInit {
       precio: [0, [Validators.required, Validators.min(0)]],
       stock: [0, [Validators.required, Validators.min(0)]],
       estado: ['', Validators.required],
-      idCategoria: [null, Validators.required] 
+      idCategoria: [null, Validators.required]
     });
   }
 
   ngOnInit(): void {
+    this.getCategorias();
     this.getProductos();
   }
-
 
   ngAfterViewInit(): void {
     this.dataSource.paginator = this.paginator;
@@ -83,26 +84,43 @@ export class ProductosComponent implements OnInit, AfterViewInit {
         this.dataSource.data = response;
       },
       error: (error) => {
-        Swal.fire({
-          allowOutsideClick: true,
-          title: 'Failed',
-          text: 'Error en el servidor',
-          icon: 'warning',
-          confirmButtonText: 'Aceptar'
-        })
-        this.router.navigate(['/login']);
+        Swal.fire('Error', 'No se pudieron cargar los productos', 'error');
       }
     });
   }
 
-  openDialog() {
-    //this.isDialogVisible =true;
-    this.producto = undefined;
-    this.titulo = 'Nuevo Producto';
-    this.productoForm.reset({
-      estado: EstadoProducto.DISPONIBLE,
-      idCategoria: 1
+  getCategorias(): void {
+    this.categoriaService.listarCategorias().subscribe({
+      next: (response) => {
+        this.categorias = response;
+        this.productoForm.patchValue({ idCategoria: response[0]?.idCategoria });
+      },
+      error: () => {
+        Swal.fire('Error', 'No se pudieron cargar las categorías', 'error');
+      }
     });
+  }
+
+  applyFilter(): void {
+    if (this.filtroCategoria != null) {
+      this.dataSource.data = this.productos.filter(p => p.idCategoria === this.filtroCategoria);
+    } else {
+      this.dataSource.data = this.productos;
+    }
+  }
+
+  openDialog(isEdit = false, producto?: Producto): void {
+    this.titulo = isEdit ? 'Editar Producto' : 'Nuevo Producto';
+
+    if (isEdit && producto) {
+      this.productoForm.patchValue(producto);
+    } else {
+      this.productoForm.reset({
+        estado: EstadoProducto.DISPONIBLE,
+        idCategoria: this.categorias[0]?.idCategoria
+      });
+    }
+
     this.dialog.open(this.dialogTemplate, {
       width: '400px'
     });
@@ -111,10 +129,8 @@ export class ProductosComponent implements OnInit, AfterViewInit {
   saveProducto(): void {
     if (this.productoForm.valid) {
       const productoData: Producto = this.productoForm.value;
-      productoData.idCategoria = 1;
 
       if (!this.producto?.idProducto) {
-        //console.log("producto:" + JSON.stringify(productoData));
         this.productosService.crearProducto(productoData).subscribe({
           next: (response) => {
             const mensaje = response.message
@@ -132,7 +148,6 @@ export class ProductosComponent implements OnInit, AfterViewInit {
             });
           },
           error: (error) => {
-            //console.log(error);
             const mensaje = error.error.message
             Swal.fire({
               allowOutsideClick: true,
@@ -179,8 +194,6 @@ export class ProductosComponent implements OnInit, AfterViewInit {
 
   editarProducto(producto: Producto) {
     this.producto = producto;
-    //console.log(this.producto);
-
     this.productoForm.patchValue({
       idProducto: producto.idProducto,
       nombre: producto.nombre,
@@ -191,7 +204,6 @@ export class ProductosComponent implements OnInit, AfterViewInit {
       idCategoria: producto.idCategoria
     });
     this.titulo = 'Editar Producto';
-    //this.isDialogVisible = true;
     this.dialog.open(this.dialogTemplate, {
       width: '400px'
     });
@@ -234,20 +246,13 @@ export class ProductosComponent implements OnInit, AfterViewInit {
     });
   }
 
-  abrirCarrito() {
-    //alert("");
-  }
-
-  logout() {
-    localStorage.removeItem('username');
-    localStorage.removeItem('password');
-    localStorage.removeItem('access_token_producto-service');
-    this.router.navigate(['/login']);
+  getNombreCategoria(id: number): string {
+    const cat = this.categorias.find(c => c.idCategoria === id);
+    return cat ? cat.nombre : '';
   }
 
   closeDialog() {
     this.productoForm.reset();
-    //this.isDialogVisible = false;
     this.dialog.closeAll();
   }
 }
