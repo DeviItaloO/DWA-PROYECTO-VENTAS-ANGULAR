@@ -24,6 +24,7 @@ export class LayoutComponent {
   logout() {
     localStorage.removeItem('access_token_producto-service');
     localStorage.removeItem('access_token_categoria-service');
+    localStorage.removeItem('access_token_usuario-service');
     localStorage.removeItem('active_client');
     this.router.navigate(['/login']);
   }

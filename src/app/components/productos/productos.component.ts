@@ -133,57 +133,23 @@ export class ProductosComponent implements OnInit, AfterViewInit {
       if (!this.producto?.idProducto) {
         this.productosService.crearProducto(productoData).subscribe({
           next: (response) => {
-            const mensaje = response.message
-            Swal.fire({
-              allowOutsideClick: true,
-              title: 'Success',
-              text: mensaje,
-              icon: 'success',
-              confirmButtonText: 'regresar'
-            }).then((click) => {
-              if (click.isConfirmed) {
-                this.getProductos();
-                this.closeDialog();
-              }
-            });
+            Swal.fire('Success', response.message, 'success');
+            this.getProductos();
+            this.closeDialog();
           },
           error: (error) => {
-            const mensaje = error.error.message
-            Swal.fire({
-              allowOutsideClick: true,
-              title: 'Failed',
-              text: mensaje,
-              icon: 'warning',
-              confirmButtonText: 'Aceptar'
-            })
+            Swal.fire('Failed', error.error.message, 'warning');
           }
         });
       } else {
         this.productosService.actualizarProducto(this.producto.idProducto, productoData).subscribe({
           next: (response) => {
-            const mensaje = response.message;
-            Swal.fire({
-              allowOutsideClick: true,
-              title: 'Success',
-              text: mensaje,
-              icon: 'success',
-              confirmButtonText: 'Regresar'
-            }).then((click) => {
-              if (click.isConfirmed) {
-                this.getProductos();
-                this.closeDialog();
-              }
-            });
+            Swal.fire('Success', response.message, 'success');
+            this.getProductos();
+            this.closeDialog();
           },
           error: (error) => {
-            const mensaje = error.error?.message;
-            Swal.fire({
-              allowOutsideClick: true,
-              title: 'Failed',
-              text: mensaje,
-              icon: 'warning',
-              confirmButtonText: 'Aceptar'
-            });
+            Swal.fire('Failed', error.error?.message, 'warning');
           }
         })
       }
@@ -222,24 +188,11 @@ export class ProductosComponent implements OnInit, AfterViewInit {
       if (click.isConfirmed) {
         this.productosService.eliminarProducto(id).subscribe({
           next: (response) => {
-            const mensaje = response.message;
-            Swal.fire({
-              title: 'Eliminado',
-              text: mensaje,
-              icon: 'success',
-              confirmButtonText: 'Aceptar'
-            }).then(() => {
-              this.getProductos();
-            });
+            Swal.fire('Eliminado', response.message, 'success');
+            this.getProductos();
           },
           error: (error) => {
-            const mensaje = error.error?.message;
-            Swal.fire({
-              title: 'Error',
-              text: mensaje,
-              icon: 'error',
-              confirmButtonText: 'Aceptar'
-            });
+            Swal.fire('Error', error.error?.message, 'error');
           }
         });
       }

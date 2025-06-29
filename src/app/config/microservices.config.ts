@@ -11,5 +11,9 @@ export const Microservicios: Record<string, MicroservicioConfig> = {
   'categoria-service': {
     clientId: 'categoria-service',
     clientSecret: 'secretCategorias'
+  },
+  'usuario-service': {
+    clientId: 'usuario-service',
+    clientSecret: 'secretUsuarios'
   }
 };

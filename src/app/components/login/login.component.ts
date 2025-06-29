@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { MatInputModule } from '@angular/material/input';
@@ -43,13 +43,25 @@ export class LoginComponent {
     });
   }
 
+  ngOnInit(): void {
+    this.sessionActiva();
+  }
+
+  sessionActiva(): void {
+    const token = this.tokenService.getToken('usuario-service');
+    if (token) {
+      this.router.navigate(['/producto']);
+    }
+  }
+
   onSubmit() {
     if (this.loginForm.valid) {
       this.authService.login(this.loginForm.value).pipe(
         switchMap(() =>
           forkJoin({
             producto: this.tokenService.obtenerToken(Microservicios['producto-service']),
-            categoria: this.tokenService.obtenerToken(Microservicios['categoria-service'])
+            categoria: this.tokenService.obtenerToken(Microservicios['categoria-service']),
+            usuario: this.tokenService.obtenerToken(Microservicios['usuario-service'])
           })
         )
       ).subscribe({
