@@ -5,7 +5,7 @@ import { MatInputModule } from '@angular/material/input';
 import { MatButtonModule } from '@angular/material/button';
 import { MatCardModule } from '@angular/material/card';
 import { MatFormFieldModule } from '@angular/material/form-field';
-import { switchMap } from 'rxjs/operators';
+import { switchMap, tap } from 'rxjs/operators';
 import { forkJoin } from 'rxjs';
 import Swal from 'sweetalert2';
 
@@ -57,6 +57,9 @@ export class LoginComponent {
   onSubmit() {
     if (this.loginForm.valid) {
       this.authService.login(this.loginForm.value).pipe(
+        tap(res => {
+          localStorage.setItem('user_role', res.role);
+        }),
         switchMap(() =>
           forkJoin({
             producto: this.tokenService.obtenerToken(Microservicios['producto-service']),

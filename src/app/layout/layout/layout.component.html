@@ -22,13 +22,13 @@
                 <mat-icon>inventory</mat-icon>
                 <span *ngIf="!isCollapsed">Productos</span>
             </a>
-            <a routerLink="/categoria" routerLinkActive="bg-slate-700"
+            <a *ngIf="rol === 'ADMIN' || rol === 'USER'" routerLink="/categoria" routerLinkActive="bg-slate-700"
                 class="px-3 py-2 rounded hover:bg-slate-700 flex items-center gap-2"
                 [class.justify-center]="isCollapsed">
                 <mat-icon>category</mat-icon>
                 <span *ngIf="!isCollapsed">Categorias</span>
             </a>
-            <a routerLink="/usuario" routerLinkActive="bg-slate-700"
+            <a *ngIf="rol === 'ADMIN'" routerLink="/usuario" routerLinkActive="bg-slate-700"
                 class="px-3 py-2 rounded hover:bg-slate-700 flex items-center gap-2"
                 [class.justify-center]="isCollapsed">
                 <mat-icon>people</mat-icon>

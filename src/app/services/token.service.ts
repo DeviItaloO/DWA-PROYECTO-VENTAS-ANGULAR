@@ -22,4 +22,12 @@ export class TokenService {
     getToken(clientId: string): string | null {
         return localStorage.getItem(`access_token_${clientId}`);
     }
+
+    clearTokens(): void {
+        Object.keys(localStorage).forEach(key => {
+            if (key.startsWith('access_token_')) {
+                localStorage.removeItem(key);
+            }
+        });
+    }
 }

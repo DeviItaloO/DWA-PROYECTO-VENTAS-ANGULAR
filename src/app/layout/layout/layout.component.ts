@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { RouterModule } from '@angular/router';
@@ -12,10 +12,15 @@ import { MatTooltipModule } from '@angular/material/tooltip';
   templateUrl: './layout.component.html',
   styleUrl: './layout.component.scss'
 })
-export class LayoutComponent {
+export class LayoutComponent implements OnInit {
   isCollapsed = false;
+  rol: string = '';
 
   constructor(private router: Router) { }
+
+  ngOnInit(): void {
+    this.rol = localStorage.getItem('user_role') || '';
+  }
 
   toggleSidebar() {
     this.isCollapsed = !this.isCollapsed;
@@ -26,6 +31,7 @@ export class LayoutComponent {
     localStorage.removeItem('access_token_categoria-service');
     localStorage.removeItem('access_token_usuario-service');
     localStorage.removeItem('active_client');
+    localStorage.removeItem('user_role');
     this.router.navigate(['/login']);
   }
 }
