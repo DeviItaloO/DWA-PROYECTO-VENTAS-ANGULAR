@@ -1,19 +1,21 @@
-import { Component, OnInit, ViewChild, TemplateRef  } from '@angular/core';
+import { Component, OnInit, AfterViewInit, ViewChild, TemplateRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ProductosService } from '../../services/productos.service';
 import { Producto } from '../../interfaces/producto';
 import { Router } from '@angular/router';
-import { FormBuilder, FormGroup, Validators, ReactiveFormsModule  } from '@angular/forms';
+import { FormBuilder, FormGroup, Validators, FormsModule, ReactiveFormsModule } from '@angular/forms';
 import Swal from 'sweetalert2';
 import { MatDialog, MatDialogRef } from '@angular/material/dialog';
-import { MatTableModule } from '@angular/material/table';
+import { MatTableDataSource, MatTableModule } from '@angular/material/table';
 import { MatButtonModule } from '@angular/material/button';
 import { MatIconModule } from '@angular/material/icon';
 import { MatPaginator } from '@angular/material/paginator';
 import { MatFormFieldModule } from '@angular/material/form-field';
 import { MatInputModule } from '@angular/material/input';
-
-//import { BrowserAnimationsModule  } from '@angular/platform-browser/animations';
+import { MatSelectModule } from '@angular/material/select';
+import { EstadoProducto } from '../../enum/estado-producto';
+import { CategoriaService } from '../../services/categorias.service';
+import { Categoria } from '../../interfaces/categoria';
 
 @Component({
   standalone: true,
@@ -21,34 +23,36 @@ import { MatInputModule } from '@angular/material/input';
   imports: [
     CommonModule,
     MatTableModule,
-    MatPaginator, 
-    MatButtonModule, 
+    MatPaginator,
+    MatButtonModule,
     MatIconModule,
     MatFormFieldModule,
     MatInputModule,
+    FormsModule,
     ReactiveFormsModule,
-    //BrowserAnimationsModule 
+    MatSelectModule,
   ],
   templateUrl: './productos.component.html',
   styleUrl: './productos.component.scss'
 })
-export class ProductosComponent implements OnInit {
+export class ProductosComponent implements OnInit, AfterViewInit {
   productos: Producto[] = [];
-  displayedColumns: string[] = ['id', 'nombre', 'descripcion', 'precio', 'stock', 'acciones'];
-  paginacion: Producto[] = [];
-  numeroPagina = 5;
-  numeroActual = 0;
-  totalProductos = 0;
+  categorias: Categoria[] = [];
+  displayedColumns: string[] = ['id', 'nombre', 'descripcion', 'precio', 'stock', 'estado', 'categoria', 'acciones'];
+  dataSource = new MatTableDataSource<any>([]);
   productoForm: FormGroup;
   isDialogVisible: boolean = false;
   producto?: Producto;
   titulo?: string;
+  estados = Object.values(EstadoProducto);
+  filtroCategoria: number | null = null;
 
   @ViewChild(MatPaginator) paginator!: MatPaginator;
   @ViewChild('dialogTemplate') dialogTemplate!: TemplateRef<any>;
 
   constructor(
     private productosService: ProductosService,
+    private categoriaService: CategoriaService,
     private router: Router,
     private dialog: MatDialog,
     private fb: FormBuilder
@@ -57,138 +61,115 @@ export class ProductosComponent implements OnInit {
       idProducto: [null],
       nombre: ['', Validators.required],
       descripcion: ['', Validators.required],
-      precio: ['', Validators.required],
-      stock: ['', Validators.required]
+      precio: [0, [Validators.required, Validators.min(0)]],
+      stock: [0, [Validators.required, Validators.min(0)]],
+      estado: ['', Validators.required],
+      idCategoria: [null, Validators.required]
     });
   }
 
   ngOnInit(): void {
+    this.getCategorias();
     this.getProductos();
   }
 
+  ngAfterViewInit(): void {
+    this.dataSource.paginator = this.paginator;
+  }
+
   getProductos(): void {
-    this.productosService.getProductos().subscribe(
-      (response) => {
+    this.productosService.getProductos().subscribe({
+      next: (response) => {
         this.productos = response;
-        //console.log("Productos: ", this.productos);
-        this.totalProductos = this.productos.length;
-        this.productosPaginados();
-        //this.paginator.firstPage();
-        //this.dataSource.data = data;//this.productos;
+        this.dataSource.data = response;
       },
-      (error) => {
-        //console.error("Error al cargar productos: ", error);
-        //alert("error al cargar productos: "+ error);
-        //const mensaje = error.error.message
-          Swal.fire({
-            allowOutsideClick: true,
-            title: 'Failed',
-            text: 'Error en el servidor',
-            icon: 'warning',
-            confirmButtonText: 'Aceptar'
-        })
+      error: (error) => {
+        Swal.fire('Error', 'No se pudieron cargar los productos', 'error');
       }
-    );
+    });
   }
 
-  productosPaginados(): void {
-    const inicio = this.numeroActual * this.numeroPagina;
-    const final = inicio + this.numeroPagina;
-    this.paginacion = this.productos.slice(inicio, final);
-    
+  getCategorias(): void {
+    this.categoriaService.listarCategorias().subscribe({
+      next: (response) => {
+        this.categorias = response;
+        this.productoForm.patchValue({ idCategoria: response[0]?.idCategoria });
+      },
+      error: () => {
+        Swal.fire('Error', 'No se pudieron cargar las categorías', 'error');
+      }
+    });
   }
 
-  openDialog() {
-    //this.isDialogVisible =true;
-    this.producto = undefined;
-    this.titulo = 'Nuevo Producto';
+  applyFilter(): void {
+    if (this.filtroCategoria != null) {
+      this.dataSource.data = this.productos.filter(p => p.idCategoria === this.filtroCategoria);
+    } else {
+      this.dataSource.data = this.productos;
+    }
+  }
+
+  openDialog(isEdit = false, producto?: Producto): void {
+    this.titulo = isEdit ? 'Editar Producto' : 'Nuevo Producto';
+
+    if (isEdit && producto) {
+      this.productoForm.patchValue(producto);
+    } else {
+      this.productoForm.reset({
+        estado: EstadoProducto.DISPONIBLE,
+        idCategoria: this.categorias[0]?.idCategoria
+      });
+    }
+
     this.dialog.open(this.dialogTemplate, {
       width: '400px'
     });
   }
 
   saveProducto(): void {
-    if(this.productoForm.valid){
+    if (this.productoForm.valid) {
       const productoData: Producto = this.productoForm.value;
-      productoData.idCategoria = 1; 
-      
+
       if (!this.producto?.idProducto) {
-        //console.log("producto:" + JSON.stringify(productoData));
-        this.productosService.crearProducto(productoData).subscribe(
-          (response) => {
-            const mensaje = response.message
-            Swal.fire({
-              allowOutsideClick: true,
-              title: 'Success',
-              text: mensaje,
-              icon: 'success',
-              confirmButtonText: 'regresar'
-            }).then((click) => {
-              if(click.isConfirmed){
-                this.getProductos();
-                this.closeDialog();
-              }
-            });
+        this.productosService.crearProducto(productoData).subscribe({
+          next: (response) => {
+            Swal.fire('Success', response.message, 'success');
+            this.getProductos();
+            this.closeDialog();
           },
-          (error) =>{
-            //console.log(error);
-            const mensaje = error.error.message
-            Swal.fire({
-              allowOutsideClick: true,
-              title: 'Failed',
-              text: mensaje,
-              icon: 'warning',
-              confirmButtonText: 'Aceptar'
-            })
+          error: (error) => {
+            Swal.fire('Failed', error.error.message, 'warning');
           }
-      );
-      }else {
-        this.productosService.actualizarProducto(this.producto.idProducto, productoData).subscribe(
-          (response) => {
-            const mensaje = response.message;
-            Swal.fire({
-              allowOutsideClick: true,
-              title: 'Success',
-              text: mensaje,
-              icon: 'success',
-              confirmButtonText: 'Regresar'
-            }).then((click) => {
-              if(click.isConfirmed){
-                this.getProductos();
-                this.closeDialog();
-              }
-            });
+        });
+      } else {
+        this.productosService.actualizarProducto(this.producto.idProducto, productoData).subscribe({
+          next: (response) => {
+            Swal.fire('Success', response.message, 'success');
+            this.getProductos();
+            this.closeDialog();
           },
-          (error) => {
-            const mensaje = error.error?.message;
-            Swal.fire({
-              allowOutsideClick: true,
-              title: 'Failed',
-              text: mensaje,
-              icon: 'warning',
-              confirmButtonText: 'Aceptar'
-            });
+          error: (error) => {
+            Swal.fire('Failed', error.error?.message, 'warning');
           }
-        )
+        })
       }
-    }else{
+    } else {
 
     }
   }
 
-  editarProducto(producto: Producto){
+  editarProducto(producto: Producto) {
     this.producto = producto;
-    //console.log(this.producto);
-    
     this.productoForm.patchValue({
       idProducto: producto.idProducto,
       nombre: producto.nombre,
       descripcion: producto.descripcion,
       precio: producto.precio,
-      stock: producto.stock
+      stock: producto.stock,
+      estado: producto.estado,
+      idCategoria: producto.idCategoria
     });
     this.titulo = 'Editar Producto';
-    //this.isDialogVisible = true;
     this.dialog.open(this.dialogTemplate, {
       width: '400px'
     });
@@ -204,54 +185,27 @@ export class ProductosComponent implements OnInit {
       cancelButtonColor: '#3085d6',
       confirmButtonText: 'Sí, eliminar'
     }).then((click) => {
-      if(click.isConfirmed){
-        this.productosService.eliminarProducto(id).subscribe(
-          (response) => {
-            const mensaje = response.message;
-            Swal.fire({
-              title: 'Eliminado',
-              text: mensaje,
-              icon: 'success',
-              confirmButtonText: 'Aceptar'
-          }).then(() => {
-              this.getProductos();
-          });
+      if (click.isConfirmed) {
+        this.productosService.eliminarProducto(id).subscribe({
+          next: (response) => {
+            Swal.fire('Eliminado', response.message, 'success');
+            this.getProductos();
           },
-          (error) => {
-            const mensaje = error.error?.message;
-            Swal.fire({
-                title: 'Error',
-                text: mensaje,
-                icon: 'error',
-                confirmButtonText: 'Aceptar'
-            });
-        }
-        );
+          error: (error) => {
+            Swal.fire('Error', error.error?.message, 'error');
+          }
+        });
       }
-
     });
   }
 
-  abrirCarrito(){
-    //alert("");
-  }
-
-  logout(){
-    localStorage.removeItem('username');
-    localStorage.removeItem('password');
-    this.router.navigate(['/login']);
+  getNombreCategoria(id: number): string {
+    const cat = this.categorias.find(c => c.idCategoria === id);
+    return cat ? cat.nombre : '';
   }
 
   closeDialog() {
     this.productoForm.reset();
-    //this.isDialogVisible = false;
     this.dialog.closeAll();
   }
-
-  onPage(event: any): void{
-    this.numeroActual = event.pageIndex;
-    this.numeroPagina = event.pageSize;
-    this.productosPaginados();
-  }
-
 }

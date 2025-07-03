@@ -8,7 +8,7 @@ import { Producto } from '../interfaces/producto';
   providedIn: 'root'
 })
 export class ProductosService {
-  private apiUrl = `${environment.apiUrl}/productos`;
+  private apiUrl = `${environment.apiGatewayUrl}/productos`;
 
   constructor(private http: HttpClient) {}
 

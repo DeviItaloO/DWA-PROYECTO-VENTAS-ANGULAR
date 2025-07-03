@@ -1,15 +1,33 @@
 import { HttpInterceptorFn } from '@angular/common/http';
+import { inject } from '@angular/core';
+import { TokenService } from '../services/token.service';
+import { Microservicios } from '../config/microservices.config';
+import { catchError } from 'rxjs/operators';
+import { throwError } from 'rxjs';
+import { Router } from '@angular/router';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-    const username = 'user';
-    const password = '49e3f0af-c9b0-4287-9969-7295f774ec00';
-    const authHeader = 'Basic ' + btoa(`${username}:${password}`);
-  
-    const authReq = req.clone({
+  const tokenService = inject(TokenService);
+  const router = inject(Router);
+  const clientId = Object.keys(Microservicios).find(key =>
+    req.url.includes(`/api/${key.replace('-service', '')}`)
+  );
+  const token = clientId ? tokenService.getToken(clientId) : null;
+  if (token) {
+    req = req.clone({
       setHeaders: {
-        Authorization: authHeader
+        Authorization: `Bearer ${token}`
       }
     });
-  
-    return next(authReq);
-  };
+  }
+
+  return next(req).pipe(
+    catchError(error => {
+      if ([0, 401, 403].includes(error.status)) {
+        tokenService.clearTokens();
+        router.navigate(['/login']);
+      }
+      return throwError(() => error);
+    })
+  );
+};

@@ -1,104 +1,170 @@
-<div class="container">
-    <h1>Catálogo de Celulares</h1>
+<div class="p-4 bg-gray-50">
+    <div class="max-w-full h-full bg-white shadow-lg rounded-2xl p-6 flex flex-col">
+        <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center flex items-center justify-center gap-2">
+            <mat-icon class="text-yellow-600">inventory_2</mat-icon> Listado de productos
+        </h3>
 
-    <div style="text-align: right; margin-bottom: 10px;">
-        <button mat-raised-button color="primary" (click)="openDialog()">Nuevo</button>
-        <button mat-raised-button color="warn" (click)="logout()">Cerrar sesión</button>
-    </div>
+        <div
+            class="flex flex-col md:flex-row justify-between items-center bg-gray-100 p-4 rounded-lg shadow-sm mb-6 gap-4">
+            <mat-form-field appearance="fill" class="!m-0 w-60">
+                <mat-label>Filtrar por categoría</mat-label>
+                <mat-select [(ngModel)]="filtroCategoria" (selectionChange)="applyFilter()" name="categoriaFiltro">
+                    <mat-option [value]="null">Todas las categorías</mat-option>
+                    <mat-option *ngFor="let cat of categorias" [value]="cat.idCategoria">
+                        {{ cat.nombre }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
 
-    <h3>Listado de productos</h3>
-    <div class="table-wrapper">
-        <table mat-table [dataSource]="paginacion" class="mat-elevation-z8">
-            <ng-container matColumnDef="id">
-                <th mat-header-cell *matHeaderCellDef> ID </th>
-                <td mat-cell *matCellDef="let producto"> {{ producto.idProducto }} </td>
-            </ng-container>
+            <div class="flex items-center gap-3">
+                <button mat-flat-button color="primary" (click)="openDialog(false)"
+                    class="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                    <mat-icon class="mr-1">add_circle</mat-icon> Nuevo
+                </button>
+            </div>
+        </div>
 
-            <ng-container matColumnDef="nombre">
-                <th mat-header-cell *matHeaderCellDef> Nombre </th>
-                <td mat-cell *matCellDef="let producto"> {{ producto.nombre }} </td>
-            </ng-container>
+        <div class="overflow-x-auto">
+            <table mat-table [dataSource]="dataSource"
+                class="min-w-full bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden">
 
-            <ng-container matColumnDef="descripcion">
-                <th mat-header-cell *matHeaderCellDef> Descripción </th>
-                <td mat-cell *matCellDef="let producto"> {{ producto.descripcion }} </td>
-            </ng-container>
+                <ng-container matColumnDef="id">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-orange-400 !text-black !text-center px-3 py-2 font-bold text-sm">ID</th>
+                    <td mat-cell *matCellDef="let producto" class="text-center px-3 py-2 border-t text-sm">
+                        {{ producto.idProducto }}
+                    </td>
+                </ng-container>
 
-            <ng-container matColumnDef="precio">
-                <th mat-header-cell *matHeaderCellDef> Precio </th>
-                <td mat-cell *matCellDef="let producto"> {{ producto.precio | currency }} </td>
-            </ng-container>
+                <ng-container matColumnDef="nombre">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-orange-400 !text-black !text-center px-3 py-2 font-bold text-sm">Nombre</th>
+                    <td mat-cell *matCellDef="let producto" class="text-center px-3 py-2 border-t text-sm">
+                        {{ producto.nombre }}
+                    </td>
+                </ng-container>
 
-            <ng-container matColumnDef="stock">
-                <th mat-header-cell *matHeaderCellDef> Stock </th>
-                <td mat-cell *matCellDef="let producto"> {{ producto.stock }} </td>
-            </ng-container>
+                <ng-container matColumnDef="descripcion">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-orange-400 !text-black !text-center px-3 py-2 font-bold text-sm">Descripción</th>
+                    <td mat-cell *matCellDef="let producto" class="text-center px-3 py-2 border-t text-sm">
+                        {{ producto.descripcion }}
+                    </td>
+                </ng-container>
 
-            <ng-container matColumnDef="acciones">
-                <th mat-header-cell *matHeaderCellDef> Acciones </th>
-                <td mat-cell *matCellDef="let producto">
-                    <button mat-icon-button (click)="editarProducto(producto)">
-                        ✏️
-                    </button>
-                    <button mat-icon-button (click)="eliminarProducto(producto.idProducto)">
-                        ❌
-                    </button>
-                    <button mat-icon-button (click)="abrirCarrito()">
-                        🛒
-                    </button>
-                </td>
-            </ng-container>
+                <ng-container matColumnDef="precio">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-orange-400 !text-black !text-center px-3 py-2 font-bold text-sm">Precio</th>
+                    <td mat-cell *matCellDef="let producto" class="text-center px-3 py-2 border-t text-sm">
+                        {{ producto.precio | currency }}
+                    </td>
+                </ng-container>
 
-            <tr mat-header-row *matHeaderRowDef="displayedColumns"></tr>
-            <tr mat-row *matRowDef="let row; columns: displayedColumns;"></tr>
-        </table>
-        
-        <mat-paginator 
-            [length]="productos.length"
-            [pageSize]="numeroPagina" 
-            [pageSizeOptions]="[5, 10, 25]"
-            (page) = "onPage($event)"
-            showFirstLastButtons
-            style="display: block; margin-top: 20px; width: 100%;">
-        </mat-paginator>
-    </div>
+                <ng-container matColumnDef="stock">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-orange-400 !text-black !text-center px-3 py-2 font-bold text-sm">Stock</th>
+                    <td mat-cell *matCellDef="let producto" class="text-center px-3 py-2 border-t text-sm">
+                        {{ producto.stock }}
+                    </td>
+                </ng-container>
 
-    <div *ngIf="productos.length === 0" style="text-align: center; margin-top: 10px;">
-        No hay productos disponibles
+                <ng-container matColumnDef="estado">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-orange-400 !text-black !text-center px-3 py-2 font-bold text-sm">Estado</th>
+                    <td mat-cell *matCellDef="let producto" class="text-center px-3 py-2 border-t text-sm">
+                        {{ producto.estado }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="categoria">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-orange-400 !text-black !text-center px-3 py-2 font-bold text-sm">Categoría</th>
+                    <td mat-cell *matCellDef="let p" class="text-center px-3 py-2 border-t text-sm">
+                        {{ getNombreCategoria(p.idCategoria) }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="acciones">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-orange-400 !text-black !text-center px-3 py-2 font-bold text-sm">Acciones</th>
+                    <td mat-cell *matCellDef="let producto" class="text-center px-3 py-2 border-t space-x-2 text-sm">
+                        <button mat-icon-button (click)="editarProducto(producto)" matTooltip="Editar">
+                            <mat-icon class="text-blue-600 hover:text-blue-800">edit</mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="eliminarProducto(producto.idProducto)" matTooltip="Eliminar">
+                            <mat-icon class="text-red-600 hover:text-red-800">delete</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns" class="!bg-orange-400"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                    class="hover:bg-blue-50 transition duration-200"></tr>
+            </table>
+        </div>
+
+        <mat-paginator [pageSize]="10" [pageSizeOptions]="[10, 15, 20]" showFirstLastButtons
+            class="mt-6 w-full"></mat-paginator>
+
+        <div *ngIf="productos.length === 0" class="text-center mt-6 text-gray-500 italic">
+            No hay productos disponibles.
+        </div>
     </div>
 </div>
 
-
-
 <ng-template #dialogTemplate>
-    <div class="dialog-container">
-      <h2>{{ titulo }}</h2>
-      <form [formGroup]="productoForm">
-        <mat-form-field appearance="fill">
-          <mat-label>Nombre</mat-label>
-          <input matInput formControlName="nombre" required />
-        </mat-form-field>
-  
-        <mat-form-field appearance="fill">
-          <mat-label>Descripción</mat-label>
-          <input matInput formControlName="descripcion" required />
-        </mat-form-field>
-  
-        <mat-form-field appearance="fill">
-          <mat-label>Precio</mat-label>
-          <input matInput type="number" formControlName="precio" required />
-        </mat-form-field>
-  
-        <mat-form-field appearance="fill">
-          <mat-label>Stock</mat-label>
-          <input matInput type="number" formControlName="stock" required />
-        </mat-form-field>
-  
-        <div class="dialog-actions">
-          <button mat-raised-button color="primary" (click)="saveProducto()">Guardar</button>
-          <button mat-raised-button color="warn" (click)="closeDialog()">Cancelar</button>
-        </div>
-      </form>
+    <div class="dialog-container bg-white p-6 rounded-xl shadow-md">
+        <h2 class="text-xl font-bold text-center text-gray-800 mb-4">{{ titulo }}</h2>
+
+        <form [formGroup]="productoForm" class="space-y-4">
+            <mat-form-field appearance="fill" class="w-full !bg-white !rounded-md">
+                <mat-label>Nombre</mat-label>
+                <input matInput formControlName="nombre" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" class="w-full !bg-white !rounded-md">
+                <mat-label>Descripción</mat-label>
+                <input matInput formControlName="descripcion" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" class="w-full !bg-white !rounded-md">
+                <mat-label>Precio</mat-label>
+                <input matInput type="number" formControlName="precio" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" class="w-full !bg-white !rounded-md">
+                <mat-label>Stock</mat-label>
+                <input matInput type="number" formControlName="stock" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" class="w-full !bg-white !rounded-md">
+                <mat-label>Estado</mat-label>
+                <mat-select formControlName="estado">
+                    <mat-option *ngFor="let estado of estados" [value]="estado">{{ estado }}</mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" class="w-full !bg-white !rounded-md">
+                <mat-label>Categoría</mat-label>
+                <mat-select formControlName="idCategoria" required>
+                    <mat-option *ngFor="let cat of categorias" [value]="cat.idCategoria">
+                        {{ cat.nombre }}
+                    </mat-option>
+                </mat-select>
+            </mat-form-field>
+
+            <div class="flex justify-end space-x-3 pt-2">
+                <button mat-raised-button color="primary"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg"
+                    (click)="saveProducto()">
+                    💾 Guardar
+                </button>
+                <button mat-raised-button color="warn"
+                    class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg"
+                    (click)="closeDialog()">
+                    ❌ Cancelar
+                </button>
+            </div>
+        </form>
     </div>
-  </ng-template>
-  
+</ng-template>

@@ -1,0 +1,109 @@
+<div class="p-4 bg-gray-50">
+    <div class="max-w-full h-full bg-white shadow-lg rounded-2xl p-6 flex flex-col">
+        <h3 class="text-2xl font-bold text-gray-800 mb-6 text-center flex items-center justify-center gap-2">
+            <mat-icon class="text-blue-600">category</mat-icon> Listado de categorías
+        </h3>
+
+        <div class="flex justify-end mb-4">
+            <button mat-flat-button color="primary" (click)="openDialog(false)"
+                class="flex items-center bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-lg">
+                <mat-icon class="mr-1">add_circle</mat-icon> Nueva Categoría
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table mat-table [dataSource]="dataSource"
+                class="min-w-full bg-white border border-gray-200 rounded-xl shadow-md overflow-hidden">
+
+                <ng-container matColumnDef="idCategoria">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-blue-200 text-black text-center align-middle px-3 py-2 font-bold text-sm">
+                        ID
+                    </th>
+                    <td mat-cell *matCellDef="let cat" class="text-center align-middle px-3 py-2 border-t text-sm">
+                        {{ cat.idCategoria }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="nombre">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-blue-200 text-black text-center align-middle px-3 py-2 font-bold text-sm">
+                        Nombre
+                    </th>
+                    <td mat-cell *matCellDef="let cat" class="text-center align-middle px-3 py-2 border-t text-sm">
+                        {{ cat.nombre }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="descripcion">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-blue-200 text-black text-center align-middle px-3 py-2 font-bold text-sm">
+                        Descripción
+                    </th>
+                    <td mat-cell *matCellDef="let cat" class="text-center align-middle px-3 py-2 border-t text-sm">
+                        {{ cat.descripcion }}
+                    </td>
+                </ng-container>
+
+                <ng-container matColumnDef="acciones">
+                    <th mat-header-cell *matHeaderCellDef
+                        class="!bg-blue-200 text-black text-center align-middle px-3 py-2 font-bold text-sm">
+                        Acciones
+                    </th>
+                    <td mat-cell *matCellDef="let cat"
+                        class="text-center align-middle px-3 py-2 border-t space-x-2 text-sm">
+                        <button mat-icon-button (click)="editarCategoria(cat)" matTooltip="Editar">
+                            <mat-icon class="text-blue-600 hover:text-blue-800">edit</mat-icon>
+                        </button>
+                        <button mat-icon-button (click)="eliminarCategoria(cat.idCategoria)" matTooltip="Eliminar">
+                            <mat-icon class="text-red-600 hover:text-red-800">delete</mat-icon>
+                        </button>
+                    </td>
+                </ng-container>
+
+                <tr mat-header-row *matHeaderRowDef="displayedColumns" class="!bg-blue-200"></tr>
+                <tr mat-row *matRowDef="let row; columns: displayedColumns;"
+                    class="hover:bg-blue-50 transition duration-200"></tr>
+            </table>
+        </div>
+
+        <mat-paginator [pageSize]="10" [pageSizeOptions]="[10, 15, 20]" showFirstLastButtons class="mt-6 w-full">
+        </mat-paginator>
+
+        <div *ngIf="categorias.length === 0" class="text-center mt-6 text-gray-500 italic">
+            No hay categorías disponibles.
+        </div>
+    </div>
+</div>
+
+<ng-template #dialogTemplate>
+    <div class="dialog-container bg-white p-6 rounded-xl shadow-md">
+        <h2 class="text-xl font-bold text-center text-gray-800 mb-4">{{ titulo }}</h2>
+
+        <form [formGroup]="categoriaForm" class="space-y-4">
+            <mat-form-field appearance="fill" class="w-full !bg-white !rounded-md">
+                <mat-label>Nombre</mat-label>
+                <input matInput formControlName="nombre" required />
+            </mat-form-field>
+
+            <mat-form-field appearance="fill" class="w-full !bg-white !rounded-md">
+                <mat-label>Descripción</mat-label>
+                <input matInput formControlName="descripcion" />
+            </mat-form-field>
+
+
+            <div class="flex justify-end space-x-3 pt-2">
+                <button mat-raised-button color="primary"
+                    class="bg-blue-600 hover:bg-blue-700 text-white font-medium px-4 py-2 rounded-lg"
+                    (click)="saveCategoria()">
+                    💾 Guardar
+                </button>
+                <button mat-raised-button color="warn"
+                    class="bg-red-600 hover:bg-red-700 text-white font-medium px-4 py-2 rounded-lg"
+                    (click)="closeDialog()">
+                    ❌ Cancelar
+                </button>
+            </div>
+        </form>
+    </div>
+</ng-template>
